@@ -1,8 +1,10 @@
 import requests
 import json
+from statistics import mean
 
-START_DATE = '2024-12-15'
-END_DATE = '2024-12-22'
+
+START_DATE = '2024-08-18'
+END_DATE = '2024-08-25'
 
 
 response = requests.get(
@@ -54,7 +56,8 @@ weather_data[list(weather_data.keys())[0]]['temperature'] = five_minutes_average
 myKeys = list(weather_data[list(weather_data.keys())[0]]['temperature'].keys())
 myKeys.sort()
 weather_data[list(weather_data.keys())[0]]['temperature'] = {i: weather_data[list(weather_data.keys())[0]]['temperature'][i] for i in myKeys}
-print(weather_data)
+for date in weather_data.keys():
+    weather_data[date]['avg_temperature'] = round(mean(weather_data[date]['temperature'].values()),2)
 
 print(weather_data)
 with open("weather_data.json", "w") as outfile:
