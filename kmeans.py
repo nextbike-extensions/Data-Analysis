@@ -1,30 +1,33 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
-from sklearn.datasets import make_blobs
 
-# Generowanie przykładowych danych
-X, _ = make_blobs(n_samples=10, n_features=2, centers=3, random_state=42)
 
 more = []
-with open('file.txt') as file:
+with open('file2.txt') as file:
     for line in file:
-        str1, str2 = line.rstrip().split(',')
-        more.append(np.array([float(str1), float(str2)]))
+        str1, str2, str3, _ = line.rstrip().split(',')
+        more.append(np.array([float(str1), float(str2), float(str3)]))
 more = np.array(more)
-print(more)
-print(type(X))
 
-# Tworzenie modelu KMeans
-kmeans = KMeans(n_clusters=30, random_state=42)
+kmeans = KMeans(n_clusters=1000, random_state=42)
 kmeans.fit(more)
 
-# Przewidywanie dla nowego punktu
+centroids = kmeans.cluster_centers_
+labels = kmeans.labels_
 
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(more[:, 0], more[:, 1], more[:, 2], c=labels, s=30, cmap='viridis', label='data sample')
 
-# Wizualizacja
-plt.scatter(more[:, 0], more[:, 1], c=kmeans.labels_, cmap='viridis', s=30, label="Punkty danych")
-plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=200, c='red', marker='X', label='Centroidy')
-plt.title("Przewidywanie klastra dla nowego punktu")
-plt.legend()
+ax.scatter(centroids[:, 0], centroids[:, 1], centroids[:, 2], s=200, c='red', marker='X', label='Centroids')
+
+ax.set_title("bikez")
+ax.set_xlabel("longitude")
+ax.set_ylabel("latitude")
+ax.set_zlabel("weekday")
+ax.legend()
+# ax.view_init(elev=90, azim=90)
+
 plt.show()
+
