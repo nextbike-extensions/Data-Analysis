@@ -1,33 +1,50 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+import os
 
+files = [file for file in os.listdir('data')]
 
-more = []
-with open('file2.txt') as file:
-    for line in file:
-        str1, str2, str3, _ = line.rstrip().split(',')
-        more.append(np.array([float(str1), float(str2), float(str3)]))
-more = np.array(more)
+other = []
+friday = []
+saturday = []
+sunday = []
 
-kmeans = KMeans(n_clusters=1000, random_state=42)
-kmeans.fit(more)
+names = ["Monday - Thursday", "Friday", "Saturday", "Sunday"]
+all_data = [other, friday, saturday, sunday]
+all_kmeans = []
 
-centroids = kmeans.cluster_centers_
-labels = kmeans.labels_
+for i in range(len(files)):
+    print(names[i])
+    with open(f'data/{files[i]}') as file:
+        for line in file:
+            str1, str2, _ = line.rstrip().split(',')
+            all_data[i].append(np.array([float(str1), float(str2)]))
+    all_data[i] = np.array(all_data[i])
 
-fig = plt.figure(figsize=(10, 8))
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(more[:, 0], more[:, 1], more[:, 2], c=labels, s=30, cmap='viridis', label='data sample')
+    kmeans = KMeans(n_clusters=80, random_state=42)
+    kmeans.fit(all_data[i])
 
-ax.scatter(centroids[:, 0], centroids[:, 1], centroids[:, 2], s=200, c='red', marker='X', label='Centroids')
+    centroids = kmeans.cluster_centers_
+    labels = kmeans.labels_
+    all_kmeans.append(kmeans)
 
-ax.set_title("bikez")
-ax.set_xlabel("longitude")
-ax.set_ylabel("latitude")
-ax.set_zlabel("weekday")
-ax.legend()
-# ax.view_init(elev=90, azim=90)
+    fig = plt.figure(figsize=(10, 8))
+    # ax = fig.add_subplot(111, projection='3d')
+    plt.scatter(all_data[i][:, 0], all_data[i][:, 1], c=labels, s=30, cmap='viridis')
 
-plt.show()
+    plt.scatter(centroids[:, 0], centroids[:, 1], s=200, c='red', marker='X', label='Centroids')
 
+    ax = plt.gca()
+    ax.set_xlim([20.88, 21.22])
+    ax.set_ylim([52.04, 52.36])
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    title = f"Bikes available on {names[i]}"
+    plt.title(title)
+    plt.savefig(title + '.png')
+    plt.legend()
+
+    # ax.view_init(elev=0, azim=4)
+
+    plt.show()
