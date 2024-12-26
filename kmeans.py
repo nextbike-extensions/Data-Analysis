@@ -1,3 +1,5 @@
+from stringprep import b1_set
+
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
@@ -9,9 +11,10 @@ other = []
 friday = []
 saturday = []
 sunday = []
+all_data = []
 
-names = ["Monday - Thursday", "Friday", "Saturday", "Sunday"]
-all_data = [other, friday, saturday, sunday]
+names = ["Monday - Thursday", "Friday", "Saturday", "Sunday", "All days"]
+all_data = [other, friday, saturday, sunday, all_data]
 all_kmeans = []
 
 for i in range(len(files)):
@@ -40,7 +43,7 @@ for i in range(len(files)):
     ax.set_ylim([52.04, 52.36])
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
-    title = f"Bikes available on {names[i]}"
+    title = f"Freestanding bikes on {names[i]}"
     plt.title(title)
     plt.savefig(title + '.png')
     plt.legend()
@@ -48,3 +51,31 @@ for i in range(len(files)):
     # ax.view_init(elev=0, azim=4)
 
     plt.show()
+    # for i, center in enumerate(centroids):
+        # print(center)
+
+    labels = kmeans.labels_
+    unique_labels, counts = np.unique(labels, return_counts=True)
+
+    allcentrs = []
+
+
+    best = None
+    maxx = 0
+    cent = None
+    # print("Number of points belonging to each centroid:")
+    for label, count, center in zip(unique_labels, counts, centroids):
+        neww = {
+            'label': label,
+            'count': count,
+            'center': center
+        }
+        allcentrs.append(neww)
+        if count > maxx:
+            best = label
+            maxx = count
+            cent = center
+    print(f"Centroid {best}: {maxx} points, center={cent}")
+    allcentrs.sort(key=lambda x: x['count'], reverse=True)
+    print(allcentrs[:10])
+
