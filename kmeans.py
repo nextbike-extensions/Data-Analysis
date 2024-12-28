@@ -1,81 +1,145 @@
-from stringprep import b1_set
-
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
-import os
 
-files = [file for file in os.listdir('data')]
+CLUSTERS = 30
 
-other = []
-friday = []
-saturday = []
-sunday = []
-all_data = []
+# Save plots in output directory
+SAVE_PLOTS = False
 
-names = ["Monday - Thursday", "Friday", "Saturday", "Sunday", "All days"]
-all_data = [other, friday, saturday, sunday, all_data]
-all_kmeans = []
+# Select files for which you would like to create plots
+MONDAY = False
+TUESDAY = False
+WEDNESDAY = False
+THURSDAY = False
+MONDAY_THURSDAY = False
+FRIDAY = False
+SATURDAY = False
+SUNDAY = False
+ALL_DATA = True
 
-for i in range(len(files)):
-    print(names[i])
-    with open(f'data/{files[i]}') as file:
-        for line in file:
-            str1, str2, _ = line.rstrip().split(',')
-            all_data[i].append(np.array([float(str1), float(str2)]))
-    all_data[i] = np.array(all_data[i])
+# Printing settings
+N_BEST_CENTERS = 4
 
-    kmeans = KMeans(n_clusters=80, random_state=42)
-    kmeans.fit(all_data[i])
+order = [MONDAY,
+         TUESDAY,
+         WEDNESDAY,
+         THURSDAY,
+         MONDAY_THURSDAY,
+         FRIDAY,
+         SATURDAY,
+         SUNDAY,
+         ALL_DATA
+]
+
+order_files = [
+    "monday_data.txt",
+    "tuesday_data.txt",
+    "wednesday_data.txt",
+    "thursday_data.txt",
+    "monday_thursday_data.txt",
+    "friday_data.txt",
+    "saturday_data.txt",
+    "sunday_data.txt",
+    "all_data.txt"
+]
+
+dimensions = 0
+prompt_flag = False
+dimension_flag = False
+
+for i in range(len(order)):
+    current_file = open(f'txt_files/{order_files[i]}', 'r')
+    dataset = []
+    # Preparing np.arrays with data
+    if os.stat(f'txt_files/{order_files[i]}').st_size == 0:
+        if order[i]:
+            raise Exception(f"{order_files[i]} is empty")
+        else:
+            continue
+    if not order[i]:
+        continue
+    for line in current_file:
+        data_piece = []
+        if not dimension_flag:
+            dimensions = len(line.rstrip().split(','))
+            print(f"kmeans objects will be created for {dimensions} dimensional data\n")
+            dimension_flag = True
+        for value in line.rstrip().split(','):
+            data_piece.append(float(value))
+
+        dataset.append(np.array(data_piece))
+        aa = line
+
+    dataset = np.array(dataset)
+
+    print(f"Creating plot for {order_files[i]}")
+
+    kmeans = KMeans(n_clusters=CLUSTERS, random_state=42)
+    kmeans.fit(dataset)
 
     centroids = kmeans.cluster_centers_
     labels = kmeans.labels_
-    all_kmeans.append(kmeans)
 
-    fig = plt.figure(figsize=(10, 8))
-    # ax = fig.add_subplot(111, projection='3d')
-    plt.scatter(all_data[i][:, 0], all_data[i][:, 1], c=labels, s=30, cmap='viridis')
+    if dimensions == 3:
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(dataset[:, 0], dataset[:, 1], dataset[:, 2], c=labels, s=30, cmap='viridis')
 
-    plt.scatter(centroids[:, 0], centroids[:, 1], s=200, c='red', marker='X', label='Centroids')
+        ax.scatter(centroids[:, 0], centroids[:, 1], centroids[:, 2], s=200, c='red', marker='X', label='Centroids')
 
-    ax = plt.gca()
-    ax.set_xlim([20.88, 21.22])
-    ax.set_ylim([52.04, 52.36])
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
-    title = f"Freestanding bikes on {names[i]}"
-    plt.title(title)
-    plt.savefig(title + '.png')
-    plt.legend()
+        ax = plt.gca()
+        ax.set_xlim([20.88, 21.22])
+        ax.set_ylim([52.04, 52.36])
+        plt.xlabel('Longitude')
+        plt.ylabel('Latitude')
+        title = f"Freestanding bikes ({order_files[i]})"
+        plt.title(title)
+        # plt.savefig(f'output/{title + '.png'}')
+        plt.legend()
 
-    # ax.view_init(elev=0, azim=4)
+        # ax.view_init(elev=0, azim=4)
 
-    plt.show()
-    # for i, center in enumerate(centroids):
-        # print(center)
+        plt.show()
+
+    elif dimensions == 2:
+        fig = plt.figure(figsize=(10, 8))
+        plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, s=30, cmap='viridis')
+
+        plt.scatter(centroids[:, 0], centroids[:, 1], s=200, c='red', marker='X', label='Centroids')
+
+        ax = plt.gca()
+        ax.set_xlim([20.88, 21.22])
+        ax.set_ylim([52.04, 52.36])
+        plt.xlabel('Longitude')
+        plt.ylabel('Latitude')
+        title = f"Freestanding bikes ({order_files[i]})"
+        plt.title(title)
+        plt.legend()
+        if SAVE_PLOTS:
+            plt.savefig(f'output/{title + '.png'}')
+        plt.show()
 
     labels = kmeans.labels_
     unique_labels, counts = np.unique(labels, return_counts=True)
 
-    allcentrs = []
+    allcenters = []
 
-
-    best = None
-    maxx = 0
-    cent = None
+    most_points = -1
+    coordinates = None
     # print("Number of points belonging to each centroid:")
     for label, count, center in zip(unique_labels, counts, centroids):
-        neww = {
-            'label': label,
+        new = {
             'count': count,
-            'center': center
+            'coordinates': center
         }
-        allcentrs.append(neww)
-        if count > maxx:
-            best = label
-            maxx = count
-            cent = center
-    print(f"Centroid {best}: {maxx} points, center={cent}")
-    allcentrs.sort(key=lambda x: x['count'], reverse=True)
-    print(allcentrs[:10])
-
+        allcenters.append(new)
+        if count > most_points:
+            most_points = count
+            coordinates = center
+    print(f"Centroid: {most_points} points, center={coordinates}")
+    allcenters.sort(key=lambda x: x['count'], reverse=True)
+    print(f"{N_BEST_CENTERS} best points found:")
+    for c in range(N_BEST_CENTERS):
+        print(f"\t{allcenters[c]['coordinates']} with {allcenters[c]['count']} points")
