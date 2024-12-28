@@ -3,21 +3,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
-CLUSTERS = 30
+CLUSTERS = 100
 
 # Save plots in output directory
 SAVE_PLOTS = False
 
 # Select files for which you would like to create plots
-MONDAY = False
-TUESDAY = False
-WEDNESDAY = False
-THURSDAY = False
+MONDAY = True
+TUESDAY = True
+WEDNESDAY = True
+THURSDAY = True
 MONDAY_THURSDAY = False
-FRIDAY = False
-SATURDAY = False
-SUNDAY = False
-ALL_DATA = True
+FRIDAY = True
+SATURDAY = True
+SUNDAY = True
+ALL_DATA = False
 
 # Printing settings
 N_BEST_CENTERS = 4
@@ -85,7 +85,7 @@ for i in range(len(order)):
     if dimensions == 3:
         fig = plt.figure(figsize=(10, 8))
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(dataset[:, 0], dataset[:, 1], dataset[:, 2], c=labels, s=30, cmap='viridis')
+        ax.scatter(dataset[:, 0], dataset[:, 1], dataset[:, 2], c=labels, s=30, cmap='inferno')
 
         ax.scatter(centroids[:, 0], centroids[:, 1], centroids[:, 2], s=200, c='red', marker='X', label='Centroids')
 
@@ -96,16 +96,16 @@ for i in range(len(order)):
         plt.ylabel('Latitude')
         title = f"Freestanding bikes ({order_files[i]})"
         plt.title(title)
-        # plt.savefig(f'output/{title + '.png'}')
+        if SAVE_PLOTS:
+            plt.savefig(f'output/{title + '.png'}')
         plt.legend()
 
-        # ax.view_init(elev=0, azim=4)
 
         plt.show()
 
     elif dimensions == 2:
         fig = plt.figure(figsize=(10, 8))
-        plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, s=30, cmap='viridis')
+        plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, s=30, cmap='inferno')
 
         plt.scatter(centroids[:, 0], centroids[:, 1], s=200, c='red', marker='X', label='Centroids')
 
@@ -128,7 +128,6 @@ for i in range(len(order)):
 
     most_points = -1
     coordinates = None
-    # print("Number of points belonging to each centroid:")
     for label, count, center in zip(unique_labels, counts, centroids):
         new = {
             'count': count,
